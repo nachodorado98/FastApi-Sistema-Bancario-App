@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from typing import List, Dict, Optional
 
 from .confconexion import *
 
@@ -23,3 +24,43 @@ class Conexion:
 
 		self.c.close()
 		self.bbdd.close()
+
+	# Metodo para insertar un usuario
+	def insertarUsuario(self,
+						usuario:str,
+						nombre:str,
+						apellido1:str,
+						apellido2:str,
+						fecha_nacimiento:str,
+						ciudad:str,
+						pais:str,
+						genero:str,
+						telefono:str,
+						correo:str,
+						contrasena:str)->None:
+
+		self.c.execute("""INSERT INTO usuarios
+						VALUES(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+						(usuario, nombre, apellido1, apellido2, fecha_nacimiento, ciudad, pais, genero, telefono, correo, contrasena))
+
+		self.bbdd.commit()
+
+	# Metodo para comprobar que un usuario existe
+	def existe_usuario(self, usuario:str)->bool:
+
+		self.c.execute("""SELECT *
+						FROM usuarios
+						WHERE usuario=%s""",
+						(usuario,))
+
+		return False if self.c.fetchone() is None else True
+
+	# Metodo para obtener los usuarios
+	def obtenerUsuarios(self)->Optional[List[Dict]]:
+
+		self.c.execute("""SELECT usuario
+						FROM usuarios""")
+
+		usuarios=self.c.fetchall()
+
+		return None if usuarios==[] else usuarios

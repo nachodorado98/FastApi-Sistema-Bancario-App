@@ -1,6 +1,6 @@
 TITULO="REST API Sistema Bancario"
 DESCRIPCION="""
-**REST API Sistema bancario con FastAPI y PostgreSQL**
+**REST API Sistema Bancario con FastAPI y PostgreSQL**
 
 Esta API proporciona operaciones básicas para obtener datos bancarios de los usuarios y realizar operaciones con su saldo.
 
