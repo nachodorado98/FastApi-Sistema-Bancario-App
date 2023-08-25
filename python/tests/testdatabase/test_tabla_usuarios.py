@@ -1,3 +1,5 @@
+import pytest
+
 def test_insertar_usuario(conexion):
 
 	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
@@ -64,3 +66,26 @@ def test_obtener_usuarios_existen(conexion):
 	for usuario in usuarios:
 
 		assert "usuario" in usuario
+
+def test_obtener_contrasena_usuario_no_existe(conexion):
+
+	assert conexion.obtenerContrasena("nacho98") is None
+
+@pytest.mark.parametrize(["usuario"],
+	[("nacho98",),("nacho99",),("nacho989",)]
+)
+def test_obtener_contrasena_usuario_existe(conexion, usuario):
+
+	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+	conexion.insertarUsuario("nacho99", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+	conexion.insertarUsuario("nacho989", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+
+	contrasena=conexion.obtenerContrasena(usuario)
+
+	assert contrasena=="1234"
