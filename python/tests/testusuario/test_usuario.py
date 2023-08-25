@@ -108,5 +108,53 @@ def test_pagina_obtener_usuarios_existentes(cliente, conexion):
 		assert "usuario" in usuario
 
 
+@pytest.mark.parametrize(["token"],
+	[("token",), ("dgfdkjg89e5yujgfkjgdf",), ("nacho98",), ("amanditaa",), ("1234",)]
+)
+def test_pagina_obtener_datos_usuario_no_autenticado(cliente, token):
 
+	header={"Authorization": f"Bearer {token}"}
 
+	respuesta=cliente.get("/usuarios/me", headers=header)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==401
+	assert "detail" in contenido
+
+@pytest.mark.parametrize(["usuario", "contrasena"],
+	[
+		("nacho98", "123456aa7891"),
+		("nacho98", "qwertyuiop"),
+		("amanda99", "1q2w3e4r5t6y7u"),
+	]
+)
+def test_pagina_obtener_datos_usuario_autenticado(cliente, conexion, usuario, contrasena):
+
+	cliente.post("/usuarios", json={"usuario":usuario,"nombre":"Nacho","apellido1":"Dorado","apellido2":"Ruiz","fecha_nacimiento":"1998-02-16","ciudad":"Madrid","pais":"España","genero":"masculino","telefono":"611111111","correo":"natxo98@gmail.com", "contrasena":contrasena})
+
+	datos_form={"grant_type": "password", "username": usuario, "password": contrasena, "scope": "", "client_id": "", "client_secret": ""}
+
+	contenido_token=cliente.post("/tokens", data=datos_form).json()
+
+	token=contenido_token["access_token"]
+
+	header={"Authorization": f"Bearer {token}"}
+
+	respuesta=cliente.get("/usuarios/me", headers=header)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==200
+	assert "usuario" in contenido
+	assert contenido["usuario"]==usuario
+	assert "nombre" in contenido
+	assert "apellido1" in contenido
+	assert "apellido2" in contenido
+	assert "fecha_nacimiento" in contenido
+	assert "ciudad" in contenido
+	assert "pais" in contenido
+	assert "genero" in contenido
+	assert "telefono" in contenido
+	assert "correo" in contenido
+	assert "contrasena" not in contenido

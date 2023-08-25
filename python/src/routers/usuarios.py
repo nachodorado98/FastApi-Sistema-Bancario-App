@@ -4,10 +4,13 @@ from typing import List, Dict
 from src.database.sesion import crearSesion
 from src.database.conexion import Conexion
 
-from src.modelos.usuario import UsuarioBBDD, UsuarioBasico
-from src.modelos.usuario_utils import obtenerObjetosUsuarioBasico
+from src.modelos.usuario import UsuarioBBDD, UsuarioBasico, Usuario
+from src.modelos.usuario_utils import obtenerObjetosUsuarioBasico, obtenerObjetoUsuario
+from src.modelos.token import Payload
 
 from src.utilidades.utils import generarHash, enviarCorreo
+
+from src.autenticacion.auth_utils import decodificarToken
 
 router_usuarios=APIRouter(prefix="/usuarios", tags=["Usuarios"])
 
@@ -85,3 +88,33 @@ async def obtenerUsuarios(con:Conexion=Depends(crearSesion))->List[UsuarioBasico
 		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuarios no existentes")
 
 	return obtenerObjetosUsuarioBasico(usuarios)
+
+@router_usuarios.get("/me", status_code=status.HTTP_200_OK, summary="Devuelve los datos del usuario")
+async def obtenerPerfil(payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->Usuario:
+
+	"""
+	Devuelve el diccionario de los datos del usuario.
+
+	## Respuesta
+
+	200 (OK): Si se obtienen los datos del usuario correctamente
+
+	- **Usuario**: El nombre de usuario del usuario (str).
+	- **Nombre**: El nombre del usuario (str).
+	- **Apellido1**: El primer apellido del usuario (str).
+	- **Apellido2**: El segundo apellido del usuario (str).
+	- **Fecha_nacimiento**: La fecha de nacimiento del usuario en formato yyyy-mm-dd (str).
+	- **Ciudad**: La ciudad del usuario (str).
+	- **Pais**: El pais del usuario (str).
+	- **Genero**: El genero del usuario (str).
+	- **Telefono**: El telefono del usuario (str).
+	- **Correo**: El correo del usuario (str).
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	datos_usuario=con.obtenerDatosUsuario(payload.sub)
+
+	return obtenerObjetoUsuario(datos_usuario)

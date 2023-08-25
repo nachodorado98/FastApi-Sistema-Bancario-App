@@ -1,4 +1,5 @@
 import pytest
+import datetime
 
 def test_insertar_usuario(conexion):
 
@@ -89,3 +90,27 @@ def test_obtener_contrasena_usuario_existe(conexion, usuario):
 	contrasena=conexion.obtenerContrasena(usuario)
 
 	assert contrasena=="1234"
+
+def test_obtener_datos_usuario_no_existe(conexion):
+
+	assert conexion.obtenerDatosUsuario("nacho98") is None
+
+def test_obtener_datos_usuario_existe(conexion):
+
+	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+
+	datos=conexion.obtenerDatosUsuario("nacho98")
+
+	assert datos["usuario"]=="nacho98"
+	assert datos["nombre"]=="nacho"
+	assert datos["apellido1"]=="dorado"
+	assert datos["apellido2"]=="ruiz"
+	assert datos["fecha_nacimiento"]==datetime.datetime(1998,2,16).date()
+	assert datos["ciudad"]=="madrid"
+	assert datos["pais"]=="españa"
+	assert datos["genero"]=="masculino"
+	assert datos["telefono"]=="123456789"
+	assert datos["correo"]=="natxo98@gmail.com"
+	assert "contrasena" not in datos
