@@ -207,3 +207,65 @@ def test_pagina_actualizar_telefono_usuario_autenticado(cliente, header_autoriza
 	assert respuesta.status_code==200
 	assert "mensaje" in contenido
 	assert "telefono" in contenido
+
+@pytest.mark.parametrize(["token"],
+	[("token",), ("dgfdkjg89e5yujgfkjgdf",), ("nacho98",), ("amanditaa",), ("1234",)]
+)
+def test_pagina_cambiar_contrasena_usuario_no_autenticado(cliente, token):
+
+	header={"Authorization": f"Bearer {token}"}
+
+	respuesta=cliente.patch("/usuarios/me/cambiar_contrasena", json={"contrasena_antigua":"123456789","contrasena_nueva":"contrasena1234"}, headers=header)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==401
+	assert "detail" in contenido
+
+@pytest.mark.parametrize(["contrasena_nueva"],
+	[("123456789",),("1234567",),("987654321",),("1234 56789",),("ddd",),("fgf123456789gfgf",),("fdf666b gh7",)]
+)
+def test_pagina_cambiar_contrasena_usuario_autenticado_incorrecto(cliente, header_autorizado, contrasena_nueva):
+
+	respuesta=cliente.patch("/usuarios/me/cambiar_contrasena", json={"contrasena_antigua":"123456789","contrasena_nueva":contrasena_nueva}, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==422
+	assert not "mensaje" in contenido
+
+@pytest.mark.parametrize(["contrasena"],
+	[("123456781",),("12345678",),("98765432",),("1234a56789",),("ddddgf6667",),("fgf12345aa89gfgf",),("fdf666b78gh7",)]
+)
+def test_pagina_cambiar_contrasena_usuario_autenticado_contrasenas_iguales(cliente, header_autorizado, contrasena):
+
+	respuesta=cliente.patch("/usuarios/me/cambiar_contrasena", json={"contrasena_antigua":contrasena,"contrasena_nueva":contrasena}, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==400
+	assert "detail" in contenido
+
+@pytest.mark.parametrize(["contrasena_antigua"],
+	[("123456781",),("12345678",),("98765432",),("1234a56789",),("ddddgf6667",),("fgf12345aa89gfgf",),("fdf666b78gh7",)]
+)
+def test_pagina_cambiar_contrasena_usuario_autenticado_contrasena_antigua_incorrecta(cliente, header_autorizado, contrasena_antigua):
+
+	respuesta=cliente.patch("/usuarios/me/cambiar_contrasena", json={"contrasena_antigua":contrasena_antigua,"contrasena_nueva":"contrasena1234"}, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==400
+	assert "detail" in contenido
+
+@pytest.mark.parametrize(["contrasena_nueva"],
+	[("123456781",),("12345678",),("98765432",),("1234a56789",),("ddddgf6667",),("fgf12345aa89gfgf",),("fdf666b78gh7",)]
+)
+def test_pagina_cambiar_contrasena_usuario_autenticado(cliente, header_autorizado, contrasena_nueva):
+
+	respuesta=cliente.patch("/usuarios/me/cambiar_contrasena", json={"contrasena_antigua":"987654321","contrasena_nueva":contrasena_nueva}, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==200
+	assert "mensaje" in contenido

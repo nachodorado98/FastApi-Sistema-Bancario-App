@@ -8,8 +8,9 @@ from src.modelos.usuario import UsuarioBBDD, UsuarioBasico, Usuario
 from src.modelos.usuario_utils import obtenerObjetosUsuarioBasico, obtenerObjetoUsuario
 from src.modelos.token import Payload
 from src.modelos.telefono import Telefono
+from src.modelos.contrasena import Contrasena
 
-from src.utilidades.utils import generarHash, enviarCorreo
+from src.utilidades.utils import generarHash, enviarCorreo, comprobarHash
 
 from src.autenticacion.auth_utils import decodificarToken
 
@@ -159,3 +160,43 @@ async def actualizarTelefono(telefono:Telefono, payload:Payload=Depends(decodifi
 	return {"mensaje":"Telefono actualizado correctamente",
 			"telefono":{"telefono antiguo":telefono_usuario,
 						"telefono nuevo":telefono.telefono}}
+
+
+@router_usuarios.patch("/me/cambiar_contrasena", status_code=status.HTTP_200_OK, summary="Cambia la contraseña del usuario")
+async def cambiarContrasena(contrasena:Contrasena, payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->Dict:
+
+	"""
+	Cambia/Actualiza la contraseña antigua del usuario a la nueva contraseña.
+
+	Devuelve un mensaje de confirmacion.
+
+	## Respuesta
+
+	200 (OK): Si se cambia la contraseña correctamente
+
+	- **Mensaje**: El mensaje del cambio/actualizacion de la contraseña (str).
+
+	400 (BAD REQUEST): Si no se cambia la contraseña correctamente
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	if contrasena.contrasena_antigua==contrasena.contrasena_nueva:
+
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Las contraseñas son iguales", headers={"WWW-Authentication":"Bearer"})		
+
+	hash_contrasena=con.obtenerContrasena(payload.sub)
+
+	if not comprobarHash(contrasena.contrasena_antigua, hash_contrasena):
+
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La contraseña antigua no es correcta", headers={"WWW-Authentication":"Bearer"})		
+
+	con.cambiarContrasena(payload.sub, generarHash(contrasena.contrasena_nueva))
+
+	con.cerrarConexion()
+
+	return {"mensaje":"Contrasena cambiada correctamente"}

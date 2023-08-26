@@ -133,3 +133,20 @@ def test_actualizar_telefono_usuario(conexion, telefono, telefono_nuevo):
 	datos=conexion.obtenerDatosUsuario("nacho98")
 
 	assert datos["telefono"]==telefono_nuevo
+
+@pytest.mark.parametrize(["contrasena", "contrasena_nueva"],
+	[
+		("1234","2341"),
+		("contrasena1234","1234contrasena"),
+		("qwertyuiop","contrasenaaaaa")
+	]
+)
+def test_cambiar_contrasena_usuario(conexion, contrasena, contrasena_nueva):
+
+	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"612345789", "natxo98@gmail.com", contrasena)
+
+	conexion.cambiarContrasena("nacho98", contrasena_nueva)
+
+	assert conexion.obtenerContrasena("nacho98")==contrasena_nueva
