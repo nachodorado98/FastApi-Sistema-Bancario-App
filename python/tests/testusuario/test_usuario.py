@@ -158,3 +158,52 @@ def test_pagina_obtener_datos_usuario_autenticado(cliente, conexion, usuario, co
 	assert "telefono" in contenido
 	assert "correo" in contenido
 	assert "contrasena" not in contenido
+
+@pytest.mark.parametrize(["token"],
+	[("token",), ("dgfdkjg89e5yujgfkjgdf",), ("nacho98",), ("amanditaa",), ("1234",)]
+)
+def test_pagina_actualizar_telefono_usuario_no_autenticado(cliente, token):
+
+	header={"Authorization": f"Bearer {token}"}
+
+	respuesta=cliente.patch("/usuarios/me/actualizar_telefono", json={"telefono":"612345789"}, headers=header)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==401
+	assert "detail" in contenido
+
+@pytest.mark.parametrize(["telefono"],
+	[({"telefono":"112345789"},),({"telefono":"512345789"},),({"telefono":"91123457"},),({"telefono":"61234578a"},),({"telefono":"61234aa78"},)]
+)
+def test_pagina_actualizar_telefono_usuario_autenticado_incorrecto(cliente, header_autorizado, telefono):
+
+	respuesta=cliente.patch("/usuarios/me/actualizar_telefono", json=telefono, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==422
+	assert not "mensaje" in contenido
+	assert not "telefono" in contenido
+
+def test_pagina_actualizar_telefono_usuario_autenticado_mismo_numero(cliente, header_autorizado):
+
+	respuesta=cliente.patch("/usuarios/me/actualizar_telefono", json={"telefono":"611111111"}, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==400
+	assert "detail" in contenido
+
+@pytest.mark.parametrize(["telefono"],
+	[({"telefono":"912345678"},),({"telefono":"612345789"},),({"telefono":"666666666"},),({"telefono":"611111116"},)]
+)
+def test_pagina_actualizar_telefono_usuario_autenticado(cliente, header_autorizado, telefono):
+
+	respuesta=cliente.patch("/usuarios/me/actualizar_telefono", json=telefono, headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==200
+	assert "mensaje" in contenido
+	assert "telefono" in contenido

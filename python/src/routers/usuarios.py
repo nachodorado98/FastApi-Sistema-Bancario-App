@@ -7,6 +7,7 @@ from src.database.conexion import Conexion
 from src.modelos.usuario import UsuarioBBDD, UsuarioBasico, Usuario
 from src.modelos.usuario_utils import obtenerObjetosUsuarioBasico, obtenerObjetoUsuario
 from src.modelos.token import Payload
+from src.modelos.telefono import Telefono
 
 from src.utilidades.utils import generarHash, enviarCorreo
 
@@ -117,4 +118,44 @@ async def obtenerPerfil(payload:Payload=Depends(decodificarToken), con:Conexion=
 
 	datos_usuario=con.obtenerDatosUsuario(payload.sub)
 
+	con.cerrarConexion()
+
 	return obtenerObjetoUsuario(datos_usuario)
+
+@router_usuarios.patch("/me/actualizar_telefono", status_code=status.HTTP_200_OK, summary="Actualiza el telefono del usuario")
+async def actualizarTelefono(telefono:Telefono, payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->Dict:
+
+	"""
+	Actualiza el telefono del usuario a uno nuevo.
+
+	Devuelve un mensaje y el diccionario que representa el telefono actualizado.
+
+	## Respuesta
+
+	200 (OK): Si se actualiza el telefono correctamente
+
+	- **Mensaje**: El mensaje de actualizacion del telefono (str).
+	- **Telefono**: El telefono con el telefono antiguo y el telefono actualizado (Dict).
+
+	400 (BAD REQUEST): Si no se actualiza el telefono correctamente
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	telefono_usuario=con.obtenerDatosUsuario(payload.sub)["telefono"]
+
+	if telefono.telefono==telefono_usuario:
+
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="El telefono es el mismo")
+
+	con.actualizarTelefono(payload.sub, telefono.telefono)
+
+	con.cerrarConexion()
+
+	return {"mensaje":"Telefono actualizado correctamente",
+			"telefono":{"telefono antiguo":telefono_usuario,
+						"telefono nuevo":telefono.telefono}}

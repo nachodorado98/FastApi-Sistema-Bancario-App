@@ -114,3 +114,22 @@ def test_obtener_datos_usuario_existe(conexion):
 	assert datos["telefono"]=="123456789"
 	assert datos["correo"]=="natxo98@gmail.com"
 	assert "contrasena" not in datos
+
+@pytest.mark.parametrize(["telefono", "telefono_nuevo"],
+	[
+		("123456789","61111111"),
+		("123456789","98761234"),
+		("123456789","45456897")
+	]
+)
+def test_actualizar_telefono_usuario(conexion, telefono, telefono_nuevo):
+
+	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							telefono, "natxo98@gmail.com", "1234")
+
+	conexion.actualizarTelefono("nacho98", telefono_nuevo)
+
+	datos=conexion.obtenerDatosUsuario("nacho98")
+
+	assert datos["telefono"]==telefono_nuevo

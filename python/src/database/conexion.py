@@ -86,3 +86,13 @@ class Conexion:
 						(usuario,))
 
 		return self.c.fetchone()
+
+	# Metodo para actualizar el numero de telefono
+	def actualizarTelefono(self, usuario:str, telefono:str)->None:
+
+		self.c.execute("""UPDATE usuarios
+						SET telefono=%s
+						WHERE usuario=%s""",
+						(telefono, usuario))
+
+		self.bbdd.commit()

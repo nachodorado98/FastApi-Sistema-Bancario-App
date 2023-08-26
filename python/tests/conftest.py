@@ -30,3 +30,18 @@ def conexion(app):
 	con.bbdd.commit()
 
 	return con
+
+@pytest.fixture()
+def header_autorizado(cliente, conexion):
+
+	cliente.post("/usuarios", json={"usuario":"nacho98","nombre":"Nacho","apellido1":"Dorado","apellido2":"Ruiz","fecha_nacimiento":"1998-02-16","ciudad":"Madrid","pais":"España","genero":"masculino","telefono":"611111111","correo":"natxo98@gmail.com", "contrasena":"987654321"})
+
+	datos_form={"grant_type": "password", "username": "nacho98", "password": "987654321", "scope": "", "client_id": "", "client_secret": ""}
+
+	contenido_token=cliente.post("/tokens", data=datos_form).json()
+
+	token=contenido_token["access_token"]
+
+	return {"Authorization": f"Bearer {token}"}
+
+	
