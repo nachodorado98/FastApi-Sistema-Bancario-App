@@ -14,3 +14,11 @@ CREATE TABLE usuarios (usuario VARCHAR(20) PRIMARY KEY,
 						correo VARCHAR(50),
 						contrasena VARCHAR(70),
 						saldo DOUBLE PRECISION DEFAULT 0.0);
+
+CREATE TABLE transacciones(transaccion VARCHAR(32) PRIMARY KEY,
+							usuario VARCHAR(20),
+							concepto VARCHAR(50),
+							cantidad DOUBLE PRECISION,
+							fecha DATE,
+							historico DOUBLE PRECISION,
+							FOREIGN KEY (usuario) REFERENCES usuarios(usuario) ON DELETE CASCADE);

@@ -25,6 +25,8 @@ def conexion(app):
 
 	con=Conexion()
 
+	con.c.execute("DELETE FROM transacciones")
+
 	con.c.execute("DELETE FROM usuarios")
 
 	con.bbdd.commit()

@@ -9,10 +9,17 @@ def test_conexion(conexion):
 	tablas=[tabla["relname"] for tabla in conexion.c.fetchall()]
 
 	assert "usuarios" in tablas
+	assert "transacciones" in tablas
 
-def test_tabla_vacia(conexion):
+def test_tabla_usuarios_vacia(conexion):
 
 	conexion.c.execute("SELECT * FROM usuarios")
+
+	assert conexion.c.fetchall()==[]
+
+def test_tabla_transacciones_vacia(conexion):
+
+	conexion.c.execute("SELECT * FROM transacciones")
 
 	assert conexion.c.fetchall()==[]
 

@@ -106,3 +106,15 @@ class Conexion:
 						(contrasena, usuario))
 
 		self.bbdd.commit()
+
+	# Metodo para obtener las transacciones de un usuario
+	def obtenerTransacciones(self, usuario:str)->Optional[List[Dict]]:
+
+		self.c.execute("""SELECT transaccion, concepto, cantidad, fecha, historico
+					FROM transacciones
+					WHERE usuario=%s""",
+					(usuario,))
+
+		transacciones=self.c.fetchall()
+
+		return None if transacciones==[] else transacciones
