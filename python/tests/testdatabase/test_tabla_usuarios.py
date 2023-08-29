@@ -150,3 +150,41 @@ def test_cambiar_contrasena_usuario(conexion, contrasena, contrasena_nueva):
 	conexion.cambiarContrasena("nacho98", contrasena_nueva)
 
 	assert conexion.obtenerContrasena("nacho98")==contrasena_nueva
+
+def test_obtener_saldo_usuario_no_existe(conexion):
+
+	assert conexion.obtenerSaldo("nacho98") is None
+
+@pytest.mark.parametrize(["usuario"],
+	[("nacho98",),("nacho99",),("nacho989",)]
+)
+def test_obtener_saldo_usuario_existe(conexion, usuario):
+
+	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+	conexion.insertarUsuario("nacho99", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+	conexion.insertarUsuario("nacho989", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"123456789", "natxo98@gmail.com", "1234")
+
+	saldo=conexion.obtenerSaldo(usuario)
+
+	assert saldo==0.0
+
+@pytest.mark.parametrize(["saldo"],
+	[(10,),(1.5,),(-30.1,),(0.0,),(200.7,)]
+)
+def test_actualizar_saldo_usuario(conexion, saldo):
+
+	conexion.insertarUsuario("nacho98", "nacho", "dorado", "ruiz",
+							"1998-02-16", "madrid", "españa", "masculino",
+							"612345789", "natxo98@gmail.com", "1234")
+
+	conexion.actualizarSaldo("nacho98", saldo)
+
+	saldo_nuevo=conexion.obtenerSaldo("nacho98")
+
+	assert saldo_nuevo==saldo_nuevo

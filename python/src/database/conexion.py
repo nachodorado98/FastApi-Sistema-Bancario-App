@@ -87,7 +87,7 @@ class Conexion:
 
 		return self.c.fetchone()
 
-	# Metodo para actualizar el numero de telefono de un usuarios
+	# Metodo para actualizar el numero de telefono de un usuario
 	def actualizarTelefono(self, usuario:str, telefono:str)->None:
 
 		self.c.execute("""UPDATE usuarios
@@ -118,3 +118,34 @@ class Conexion:
 		transacciones=self.c.fetchall()
 
 		return None if transacciones==[] else transacciones
+
+	# Metodo para obtener el saldo del usuario
+	def obtenerSaldo(self, usuario:str)->Optional[float]:
+
+		self.c.execute("""SELECT saldo
+						FROM usuarios
+						WHERE usuario=%s""",
+						(usuario,))
+
+		saldo=self.c.fetchone()
+
+		return saldo["saldo"] if saldo is not None else saldo
+
+	# Metodo para actualizar el saldo de un usuario
+	def actualizarSaldo(self, usuario:str, saldo:float)->None:
+
+		self.c.execute("""UPDATE usuarios
+						SET saldo=%s
+						WHERE usuario=%s""",
+						(saldo, usuario))
+
+		self.bbdd.commit()
+
+	# Metodo para insertar una transaccion
+	def insertarTransaccion(self, transaccion:str, usuario:str, concepto:str, cantidad:float, fecha:str, historico:float)->None:
+
+		self.c.execute("""INSERT INTO transacciones
+						VALUES(%s, %s, %s, %s, %s, %s)""",
+						(transaccion, usuario, concepto, cantidad, fecha, historico))
+
+		self.bbdd.commit()
