@@ -200,3 +200,24 @@ async def cambiarContrasena(contrasena:Contrasena, payload:Payload=Depends(decod
 	con.cerrarConexion()
 
 	return {"mensaje":"Contrasena cambiada correctamente"}
+
+@router_usuarios.get("/me/saldo", status_code=status.HTTP_200_OK, summary="Obtener el saldo del usuario")
+async def obtenerSaldo(payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->Dict:
+
+	"""
+	Devuelve un diccionario con el saldo del usuario.
+
+	## Respuesta
+
+	200 (OK): Si se obtiene el saldo correctamente
+
+	- **Saldo**: El saldo del usuario (float).
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	saldo=con.obtenerSaldo(payload.sub)
+
+	return {"saldo":saldo}

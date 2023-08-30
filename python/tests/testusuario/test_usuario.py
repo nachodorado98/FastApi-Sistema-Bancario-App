@@ -269,3 +269,49 @@ def test_pagina_cambiar_contrasena_usuario_autenticado(cliente, header_autorizad
 
 	assert respuesta.status_code==200
 	assert "mensaje" in contenido
+
+@pytest.mark.parametrize(["token"],
+	[("token",), ("dgfdkjg89e5yujgfkjgdf",), ("nacho98",), ("amanditaa",), ("1234",)]
+)
+def test_pagina_obtener_saldo_usuario_no_autenticado(cliente, token):
+
+	header={"Authorization": f"Bearer {token}"}
+
+	respuesta=cliente.get("/usuarios/me/saldo", headers=header)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==401
+	assert "detail" in contenido
+
+def test_pagina_obtener_saldo_usuario_autenticado(cliente, header_autorizado):
+
+	respuesta=cliente.get("/usuarios/me/saldo", headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==200
+	assert "saldo" in contenido
+	assert contenido["saldo"]==0.0
+
+@pytest.mark.parametrize(["cantidad1","cantidad2","cantidad3","saldo"],
+	[
+		(50,50,25,75),
+		(50,10,5,55),
+		(50,50,100,0),
+		(25.5,50.3,5,70.8) 
+	]
+)
+def test_pagina_obtener_saldo_usuario_autenticado_transacciones(cliente, header_autorizado, cantidad1, cantidad2, cantidad3, saldo):
+
+	cliente.post("/transacciones/ingresar", json={"concepto":"concepto", "cantidad":cantidad1}, headers=header_autorizado)
+	cliente.post("/transacciones/ingresar", json={"concepto":"concepto", "cantidad":cantidad2}, headers=header_autorizado)
+	cliente.post("/transacciones/retirar", json={"concepto":"concepto", "cantidad":cantidad3}, headers=header_autorizado)
+
+	respuesta=cliente.get("/usuarios/me/saldo", headers=header_autorizado)
+
+	contenido=respuesta.json()
+
+	assert respuesta.status_code==200
+	assert "saldo" in contenido
+	assert contenido["saldo"]==saldo
