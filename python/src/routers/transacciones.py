@@ -58,13 +58,14 @@ async def realizarIngreso(transaccion:TransaccionBasica, payload:Payload=Depends
 	"""
 	Realiza una transaccion de ingreso y lo inserta en la BBDD.
 
-	Devuelve un mensaje de confirmacion del ingreso.
+	Devuelve un mensaje de confirmacion del ingreso y el saldo actual.
 
 	## Respuesta
 
 	201 (CREATED): Si se realiza el ingreso correctamente
 
 	- **Mensaje**: El mensaje de ingreso correcto del usuario (str).
+	- **Saldo**: El saldo del usuario (float).
 
 	400 (BAD REQUEST): Si no se realiza el ingreso correctamente
 
@@ -83,7 +84,7 @@ async def realizarIngreso(transaccion:TransaccionBasica, payload:Payload=Depends
 
 	saldo_actualizado=saldo_actual+transaccion.cantidad
 
-	con.actualizarSaldo("nacho98", saldo_actualizado)
+	con.actualizarSaldo(payload.sub, saldo_actualizado)
 
 	transaccion_id=uuid.uuid4().hex
 
@@ -93,4 +94,54 @@ async def realizarIngreso(transaccion:TransaccionBasica, payload:Payload=Depends
 
 	con.cerrarConexion()
 
-	return {"mensaje":"Ingreso realizado correctamente"}
+	return {"mensaje":"Ingreso realizado correctamente",
+			"saldo":saldo_actualizado}
+
+@router_transacciones.post("/retirar", status_code=status.HTTP_201_CREATED, summary="Realiza una retirada del usuario")
+async def realizarRetirada(transaccion:TransaccionBasica, payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->Dict:
+
+	"""
+	Realiza una transaccion de retirada y lo inserta en la BBDD.
+
+	Devuelve un mensaje de confirmacion de la retirada y el saldo actual.
+
+	## Respuesta
+
+	201 (CREATED): Si se realiza la retirada correctamente
+
+	- **Mensaje**: El mensaje de ingreso correcto del usuario (str).
+	- **Saldo**: El saldo del usuario (float).
+
+	400 (BAD REQUEST): Si no se realiza la retirada correctamente
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	if transaccion.cantidad<=0.0:
+
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cantidad erronea")
+
+	saldo_actual=con.obtenerSaldo(payload.sub)
+
+	if transaccion.cantidad>saldo_actual:
+
+		raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cantidad superior al saldo")
+
+	saldo_actualizado=saldo_actual-transaccion.cantidad
+
+	con.actualizarSaldo(payload.sub, saldo_actualizado)
+
+	transaccion_id=uuid.uuid4().hex
+
+	fecha=datetime.datetime.now().strftime("%Y-%m-%d")
+
+	con.insertarTransaccion(transaccion_id, payload.sub, transaccion.concepto, -transaccion.cantidad, fecha, saldo_actualizado)
+
+	con.cerrarConexion()
+
+	return {"mensaje":"Retirada realizada correctamente",
+			"saldo":saldo_actualizado}
