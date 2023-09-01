@@ -22,3 +22,10 @@ CREATE TABLE transacciones(transaccion VARCHAR(32) PRIMARY KEY,
 							fecha DATE,
 							historico DOUBLE PRECISION,
 							FOREIGN KEY (usuario) REFERENCES usuarios(usuario) ON DELETE CASCADE);
+
+CREATE TABLE transferencias(transferencia VARCHAR(32) PRIMARY KEY,
+							transaccion_origen VARCHAR(32),
+							transaccion_destino VARCHAR(32),
+							cantidad_neta DOUBLE PRECISION,
+							FOREIGN KEY (transaccion_origen) REFERENCES transacciones(transaccion) ON DELETE CASCADE,
+							FOREIGN KEY (transaccion_destino) REFERENCES transacciones(transaccion) ON DELETE CASCADE)

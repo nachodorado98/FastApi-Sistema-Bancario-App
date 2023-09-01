@@ -5,6 +5,7 @@ from .routers.inicio import router_inicio
 from .routers.usuarios import router_usuarios
 from .autenticacion.auth import router_auth
 from .routers.transacciones import router_transacciones
+from .routers.transferencias import router_transferencias
 
 # Funcion para crear la app
 def crearApp():
@@ -19,5 +20,6 @@ def crearApp():
 	app.include_router(router_usuarios)
 	app.include_router(router_auth)
 	app.include_router(router_transacciones)
+	app.include_router(router_transferencias)
 
 	return app

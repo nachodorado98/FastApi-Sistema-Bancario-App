@@ -149,3 +149,12 @@ class Conexion:
 						(transaccion, usuario, concepto, cantidad, fecha, historico))
 
 		self.bbdd.commit()
+
+	# Metodo para insertar una transferencia
+	def insertarTransferencia(self, transferencia:str, origen:str, destino:str, cantidad:float)->None:
+
+		self.c.execute("""INSERT INTO transferencias
+						VALUES(%s, %s, %s, %s)""",
+						(transferencia, origen, destino, cantidad))
+
+		self.bbdd.commit()
