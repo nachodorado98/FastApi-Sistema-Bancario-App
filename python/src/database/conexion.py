@@ -158,3 +158,20 @@ class Conexion:
 						(transferencia, origen, destino, cantidad))
 
 		self.bbdd.commit()
+
+	# Metodo para obtener transacciones del usuario
+	def obtenerTransferencias(self, usuario:str)->Optional[List[Dict]]:
+
+		self.c.execute("""SELECT tf.transferencia, ts.usuario AS usuario_origen, tss.usuario as usuario_destino, ts.concepto, tf.cantidad_neta AS cantidad, ts.fecha
+							FROM transferencias tf
+                            JOIN transacciones ts
+                            ON tf.transaccion_origen=ts.transaccion
+                            JOIN transacciones tss
+                            ON tf.transaccion_destino=tss.transaccion
+                            WHERE ts.usuario=%s
+                            OR tss.usuario=%s""",
+                            (usuario, usuario))
+
+		transferencias=self.c.fetchall()
+
+		return None if transferencias==[] else transferencias

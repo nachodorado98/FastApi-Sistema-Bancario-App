@@ -1,5 +1,5 @@
 from fastapi import APIRouter, status, Depends, HTTPException
-from typing import Dict
+from typing import Dict, List
 import uuid
 import datetime
 
@@ -7,12 +7,50 @@ from src.database.sesion import crearSesion
 from src.database.conexion import Conexion
 
 from src.modelos.token import Payload
-from src.modelos.transferencia import TransferenciaBasica
+from src.modelos.transferencia import TransferenciaBasica, Transferencia
+from src.modelos.transferencia_utils import obtenerObjetosTransferencia
 
 from src.autenticacion.auth_utils import decodificarToken
 
 
 router_transferencias=APIRouter(prefix="/transferencias", tags=["Transferencias"])
+
+@router_transferencias.get("", status_code=status.HTTP_200_OK, summary="Devuelve las transferencias del usuario")
+async def obtenerTransferencias(payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->List[Transferencia]:
+
+	"""
+	Devuelve los diccionarios asociados a las transferencias del usuario.
+
+	## Respuesta
+
+	200 (OK): Si se obtienen las transferencias correctamente
+
+	- **Transferencia**: El id de la transferencia (str).
+	- **Usuario_origen**: El usuario origen de la transferencia (str).
+	- **Usuario_destino**: El usuario destino de la transferencia (str).
+	- **Concepto**: El concepto de la transferencia (str).
+	- **Cantidad**: La cantidad de la transferencia (float).
+	- **Fecha**: La fecha de la transferencia en formato yyyy-mm-dd (str)
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+
+	404 (NOT FOUND): Si no se obtienen las transferencias correctamente
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	transferencias=con.obtenerTransferencias(payload.sub)
+
+	con.cerrarConexion()
+
+	if transferencias is None:
+
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transferencias no existentes")
+
+	return obtenerObjetosTransferencia(transferencias)
+
 
 @router_transferencias.post("", status_code=status.HTTP_201_CREATED, summary="Realiza una transferencia")
 async def realizarTransferencia(transferencia:TransferenciaBasica, payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->Dict:
@@ -77,6 +115,8 @@ async def realizarTransferencia(transferencia:TransferenciaBasica, payload:Paylo
 	con.insertarTransaccion(transaccion_id_destino, transferencia.usuario_destino, transferencia.concepto, transferencia.cantidad, fecha, saldo_actualizado_destino)
 
 	con.insertarTransferencia(uuid.uuid4().hex, transaccion_id_origen, transaccion_id_destino, transferencia.cantidad)
+
+	con.cerrarConexion()
 
 	return {"mensaje":"Transferencia realizada correctamente",
 			"saldo":saldo_actualizado_origen}
