@@ -120,3 +120,75 @@ async def realizarTransferencia(transferencia:TransferenciaBasica, payload:Paylo
 
 	return {"mensaje":"Transferencia realizada correctamente",
 			"saldo":saldo_actualizado_origen}
+
+@router_transferencias.get("/realizadas", status_code=status.HTTP_200_OK, summary="Devuelve las transferencias realizadas del usuario")
+async def obtenerTransferenciasRealizadas(payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->List[Transferencia]:
+
+	"""
+	Devuelve los diccionarios asociados a las transferencias realizadas por el usuario.
+
+	## Respuesta
+
+	200 (OK): Si se obtienen las transferencias realizadas correctamente
+
+	- **Transferencia**: El id de la transferencia (str).
+	- **Usuario_origen**: El usuario origen de la transferencia (str).
+	- **Usuario_destino**: El usuario destino de la transferencia (str).
+	- **Concepto**: El concepto de la transferencia (str).
+	- **Cantidad**: La cantidad de la transferencia (float).
+	- **Fecha**: La fecha de la transferencia en formato yyyy-mm-dd (str)
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+
+	404 (NOT FOUND): Si no se obtienen las transferencias realizadas correctamente
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	transferencias=con.obtenerTransferenciasRealizadas(payload.sub)
+
+	con.cerrarConexion()
+
+	if transferencias is None:
+
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transferencias realizadas no existentes")
+
+	return obtenerObjetosTransferencia(transferencias)
+
+@router_transferencias.get("/recibidas", status_code=status.HTTP_200_OK, summary="Devuelve las transferencias recibidas del usuario")
+async def obtenerTransferenciasRecibidas(payload:Payload=Depends(decodificarToken), con:Conexion=Depends(crearSesion))->List[Transferencia]:
+
+	"""
+	Devuelve los diccionarios asociados a las transferencias recibidas del usuario.
+
+	## Respuesta
+
+	200 (OK): Si se obtienen las transferencias recibidas correctamente
+
+	- **Transferencia**: El id de la transferencia (str).
+	- **Usuario_origen**: El usuario origen de la transferencia (str).
+	- **Usuario_destino**: El usuario destino de la transferencia (str).
+	- **Concepto**: El concepto de la transferencia (str).
+	- **Cantidad**: La cantidad de la transferencia (float).
+	- **Fecha**: La fecha de la transferencia en formato yyyy-mm-dd (str)
+
+	401 (UNAUTHORIZED): Si los datos no son correctos
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+
+	404 (NOT FOUND): Si no se obtienen las transferencias recibidas correctamente
+
+	- **Mensaje**: El mensaje de la excepcion (str).
+	"""
+
+	transferencias=con.obtenerTransferenciasRecibidas(payload.sub)
+
+	con.cerrarConexion()
+
+	if transferencias is None:
+
+		raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Transferencias recibidas no existentes")
+
+	return obtenerObjetosTransferencia(transferencias)

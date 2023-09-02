@@ -175,3 +175,35 @@ class Conexion:
 		transferencias=self.c.fetchall()
 
 		return None if transferencias==[] else transferencias
+
+	# Metodo para obtener transacciones realizadas por el usuario
+	def obtenerTransferenciasRealizadas(self, usuario:str)->Optional[List[Dict]]:
+
+		self.c.execute("""SELECT tf.transferencia, ts.usuario AS usuario_origen, tss.usuario as usuario_destino, ts.concepto, tf.cantidad_neta AS cantidad, ts.fecha
+							FROM transferencias tf
+                            JOIN transacciones ts
+                            ON tf.transaccion_origen=ts.transaccion
+                            JOIN transacciones tss
+                            ON tf.transaccion_destino=tss.transaccion
+                            WHERE ts.usuario=%s""",
+                            (usuario,))
+
+		transferencias=self.c.fetchall()
+
+		return None if transferencias==[] else transferencias
+
+	# Metodo para obtener transacciones recibidas del usuario
+	def obtenerTransferenciasRecibidas(self, usuario:str)->Optional[List[Dict]]:
+
+		self.c.execute("""SELECT tf.transferencia, ts.usuario AS usuario_origen, tss.usuario as usuario_destino, ts.concepto, tf.cantidad_neta AS cantidad, ts.fecha
+							FROM transferencias tf
+                            JOIN transacciones ts
+                            ON tf.transaccion_origen=ts.transaccion
+                            JOIN transacciones tss
+                            ON tf.transaccion_destino=tss.transaccion
+                            WHERE tss.usuario=%s""",
+                            (usuario,))
+
+		transferencias=self.c.fetchall()
+
+		return None if transferencias==[] else transferencias
